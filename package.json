@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/http/server.ts"
+    "dev": "tsx watch --env-file .env src/http/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +14,7 @@
     "@types/node": "^22.5.1",
     "eslint": "^9.9.1",
     "globals": "^15.9.0",
+    "prettier-plugin-prisma": "^5.0.0",
     "prisma": "^5.19.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",

@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:15 # Especifique a versão do PostgreSQL
+    container_name: shopper # Nome do contêiner
+    environment:
+      POSTGRES_USER: myuser # Nome de usuário do PostgreSQL
+      POSTGRES_PASSWORD: mypasswd # Senha do usuário
+      POSTGRES_DB: shopper # Nome do banco de dados
+    ports:
+      - "5432:5432" # Mapeamento de portas (host:container)
+    volumes:
+      - ./db_postgres_data:/var/lib/postgresql/data # Volume persistente para armazenar dados
+    restart: unless-stopped # Política de reinício
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - shopper_network
+
+volumes:
+  db_postgres_data: # Corrigido o nome do volume
+    driver: local # O volume será armazenado localmente no host
+
+networks:
+  shopper_network:
+    driver: bridge

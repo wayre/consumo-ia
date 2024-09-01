@@ -1,10 +1,9 @@
 import fastify from "fastify";
+import { createMeasure } from "@routes/create-measure";
 
 const app = fastify();
 
-app.get("/", (req, reply) => {
-  reply.send({ hello: "world" });
-});
+app.register(createMeasure);
 
 app
   .listen({ port: 3000 })

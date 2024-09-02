@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { prisma } from "@lib/prisma";
-import path from "path";
-import { isBase64Image, getFileType } from "@utils/utils";
+import { isBase64Image, saveImageBase64ToFile } from "@utils/utils";
 
 const createMeasureSchema = z.object({
   image: z.string(), //.base64(),
@@ -17,41 +16,44 @@ export async function createMeasure(app: FastifyInstance) {
   app.post("/upload", async (request: FastifyRequest, reply: FastifyReply) => {
     const result = createMeasureSchema.safeParse(request.body);
 
-    //check if values are coming correctly
-    if (!result.success) {
-      console.log(result.error);
-      return reply.status(400).send({
-        error_code: result.error.issues[0].code,
-        error_description: result.error.issues[0].message,
-      });
-    }
-
-    const { image, customer_code, measure_datetime, measure_type } =
-      createMeasureSchema.parse(request.body);
-    console.log("isBase64?", isBase64Image(image));
-
-    /**
-       //here you need to check if this already exists
-       //a reading for this type in the current month
-       //implement here
-       
-       //check if measure datetime is in the correct format
-       //implement here
-       
-       //check if measure datetime is in the correct month
-       //implement here
-       
-       //check if image is a valid base64 encoded string
-       //implement here
-       
-       //check if image is a valid image file
-       //implement here 
-       */
-
-    const measure_value = 12312541;
-    const imageUrl = `${Date.now()}.${getFileType(image)}`;
-
     try {
+      //check if values are coming correctly
+      const isBase64 = isBase64Image(result.data?.image);
+      if (!result.success) throw new Error(result.error.message);
+      if (!isBase64)
+        throw new Error(
+          "Invalid Base64 string data. \
+      It seems to be not a Base64 image."
+        );
+
+      const { image, customer_code, measure_datetime, measure_type } =
+        createMeasureSchema.parse(request.body);
+
+      // await Prisma.measure
+
+      /**
+         //here you need to check if this already exists
+        //a reading for this type in the current month
+        //implement here
+        
+        //check if measure datetime is in the correct format
+        //implement here
+        
+        //check if measure datetime is in the correct month
+        //implement here
+        
+        //check if image is a valid base64 encoded string
+        //implement here
+        
+        //check if image is a valid image file
+        //implement here 
+        */
+
+      const measure_value = 12312541;
+
+      const fileName = saveImageBase64ToFile(image);
+      const imageUrl = `/public/images/${fileName}`;
+
       const measure = await prisma.measure.create({
         data: {
           image_url: imageUrl,
@@ -73,14 +75,23 @@ export async function createMeasure(app: FastifyInstance) {
         measure_uuid: measure.measure_uuid,
       });
 
-      // Return the created measure data
-    } catch (error) {
-      console.error(`Erro ${new Date(Date.now())}`, error);
+      // eslint-disable-next-line
+    } catch (error: any) {
+      let message;
+      try {
+        const errorMessage = error.message
+          ? JSON.parse(error.message).pop()
+          : error;
+        const path = errorMessage.path;
+        message = `Error creating measure: ${path} - ${errorMessage.message}`;
+      } catch {
+        console.log(">>>", error);
+        message = error.message;
+      }
 
-      //
       return reply.status(400).send({
-        error_code: error,
-        error_description: error,
+        error_code: "INVALID_DATA",
+        error_description: message,
       });
     }
   });

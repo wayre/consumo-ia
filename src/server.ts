@@ -1,8 +1,11 @@
 import fastify from "fastify";
-import { createMeasure } from "@routes/create-measure";
 import cors from "@fastify/cors";
-import fastifyStatic from "@fastify/static";
 import path from "path";
+
+import { createMeasure } from "@routes/create-measure";
+import { confirmMeasure } from "@routes/confirm-measure";
+import { getMeasures } from "@routes/get-measures";
+import fastifyStatic from "@fastify/static";
 
 const app = fastify();
 
@@ -18,6 +21,8 @@ app.register(fastifyStatic, {
 });
 
 app.register(createMeasure);
+app.register(confirmMeasure);
+app.register(getMeasures);
 
 app
   .listen({ port: 3000 })
